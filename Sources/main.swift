@@ -3,19 +3,20 @@ import TelegramBot
 
 typealias Trigger = String
 typealias Correction = String
+typealias Chat = Int64
 
 let token = readToken(from: "MIAKO_BOT_TOKEN")
 let bot = TelegramBot(token: token)
 let router = Router(bot: bot)
 
-var allCorrections: [Int64: [Trigger: Correction]] = [:]
+var allCorrections: [Chat: [Trigger: Correction]] = [:]
 
-fileprivate func isAdmin(userId user: Int64, chatID chat: Int64) -> Bool {
+fileprivate func isAdmin(userId user: Int64, chatID chat: Chat) -> Bool {
     guard let chatMember = bot.getChatMemberSync(chat_id: chat, user_id: user) else { return false }
     return chatMember.status == .administrator || chatMember.status == .creator
 }
 
-fileprivate func persist(trigger: Trigger, withCorrection correction: Correction, forChat chat: Int64) {
+fileprivate func persist(trigger: Trigger, withCorrection correction: Correction, forChat chat: Chat) {
     if allCorrections[chat] != nil {
         allCorrections[chat]![trigger] = correction
         return
@@ -24,7 +25,7 @@ fileprivate func persist(trigger: Trigger, withCorrection correction: Correction
     allCorrections[chat] = [trigger:correction]
 }
 
-fileprivate func forget(_ trigger: Trigger, forChat chat: Int64 ) {
+fileprivate func forget(_ trigger: Trigger, forChat chat: Chat ) {
     guard let correctionsForChat = allCorrections[chat] else { return }
     guard !correctionsForChat.isEmpty else { return }
     
@@ -60,6 +61,32 @@ router["remove_correction"] = { context in
     guard arguments.count == 1 else { return true }
     
     forget(arguments.first!, forChat: fromChatId)
+    
+    return true
+}
+
+router["list"] = { context in
+    guard let chat = context.chatId else { return false }
+    
+    guard context.slash else { return true }
+    
+    let correctionsForChat = allCorrections[chat]
+    
+    if correctionsForChat != nil {
+        
+        var message: String = "Trigger : Correction \n ---------------"
+        
+        correctionsForChat!.forEach({ (trigger,correction) in
+            message.append("\n")
+            message.append("\(trigger) : \(correction)")
+        })
+        
+        bot.sendMessageAsync(chat, message)
+        
+        return true
+    }
+    
+    bot.sendMessageAsync(chat, "There are no rules set up for this chat.")
     
     return true
 }
