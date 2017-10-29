@@ -5,6 +5,6 @@ import PackageDescription
 let package = Package(
     name: "miakoBot",
     dependencies: [
-        .package(url: "https://github.com/zmeyc/telegram-bot-swift.git", from: "0.16.1")
+        .Package(url: "https://github.com/zmeyc/telegram-bot-swift.git", from: "0.16.1")
     ]
 )
