@@ -137,8 +137,6 @@ router["remove_rule"] = { context in
 router["list"] = { context in
     guard let chat = context.chatId else { return false }
     
-    guard context.slash else { return true }
-    
     let correctionsForChat = allCorrections[chat]
     
     if correctionsForChat != nil {
@@ -156,6 +154,27 @@ router["list"] = { context in
     }
     
     bot.sendMessageAsync(chat, "There are no rules set up for this chat.")
+    
+    return true
+}
+
+router["yell"] = { context in
+    guard   let fromMemberId = context.fromId,
+        let fromChatId = context.chatId
+        else { return true }
+    
+    guard let godIdString = ProcessInfo.processInfo.environment["godId"],
+               let chatIdString = ProcessInfo.processInfo.environment["chatId"]
+        else { return true }
+    
+    let godId = Int64(godIdString)
+    let chatId = Int64(chatIdString)
+    
+    guard fromMemberId == godId, fromChatId == godId else { return false }
+    
+    let text = context.args.scanRestOfString()
+    
+    bot.sendMessageAsync(chatId!, text)
     
     return true
 }
