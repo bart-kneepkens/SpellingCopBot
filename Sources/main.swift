@@ -52,57 +52,86 @@ fileprivate func isAdmin(userId user: Int64, chatID chat: Chat) -> Bool {
     return chatMember.status == .administrator || chatMember.status == .creator
 }
 
-fileprivate func persist(trigger: Trigger, withCorrection correction: Correction, forChat chat: Chat) {
+fileprivate func persist(trigger: Trigger, withCorrection correction: Correction, forChat chat: Chat) -> Bool {
     if allCorrections[chat] != nil {
+        guard !allCorrections[chat]!.keys.contains(trigger) else {
+            bot.sendMessageAsync(chat, "There is already a rule with this trigger! 🔫")
+            return false
+        }
         allCorrections[chat]![trigger] = correction
-        return
+    } else {
+        allCorrections[chat] = [trigger:correction]
     }
-    
-    allCorrections[chat] = [trigger:correction]
     
     DispatchQueue.main.async {
         saveToFile(for: chat)
     }
+    
+    return true
 }
 
-fileprivate func forget(_ trigger: Trigger, forChat chat: Chat ) {
-    guard let correctionsForChat = allCorrections[chat] else { return }
-    guard !correctionsForChat.isEmpty else { return }
+fileprivate func forget(_ trigger: Trigger, forChat chat: Chat) -> Bool {
+    guard let correctionsForChat = allCorrections[chat] else { return false }
+    guard !correctionsForChat.isEmpty else { return false }
     
     if correctionsForChat.keys.contains(trigger) {
         allCorrections[chat]!.removeValue(forKey: trigger)
+        
+        DispatchQueue.main.async {
+            saveToFile(for: chat)
+        }
+        return true
     }
+    bot.sendMessageAsync(chat, "I'm dividing by zero! 💥 \nThere is no such rule to remove!")
+    return false
 }
 
 router["add_rule"] = { context in
     guard   let fromMemberId = context.fromId,
-            let fromChatId = context.chatId,
-            (context.privateChat || isAdmin(userId: fromMemberId, chatID: fromChatId))
+            let fromChatId = context.chatId
     else { return false }
-    guard context.slash else { return true }
+    
+    guard (context.privateChat || isAdmin(userId: fromMemberId, chatID: fromChatId)) else {
+        bot.sendMessageAsync(fromChatId, "This command is only available to admins and creators ☹️")
+        return false
+    }
     
     let arguments = context.args.scanWords()
-    guard arguments.count == 2 else { return true }
+    guard arguments.count == 2 else {
+        bot.sendMessageAsync(fromChatId, "Please provide two arguments. [Trigger] [Correction] ☹️")
+        return true
+    }
     
-    persist(trigger: arguments.first!, withCorrection: arguments.last!, forChat: fromChatId)
+    if persist(trigger: arguments.first!, withCorrection: arguments.last!, forChat: fromChatId) {
+        bot.sendMessageAsync(fromChatId, "Rule added 🎊 : \(arguments.first!)")
+        return true
+    }
     
-    return true
+    return false
 }
 
 router["remove_rule"] = { context in
     guard   let fromMemberId = context.fromId,
-            let fromChatId = context.chatId,
-            (context.privateChat || isAdmin(userId: fromMemberId, chatID: fromChatId))
+            let fromChatId = context.chatId
     else { return false }
     
-    guard context.slash else { return true }
+    guard (context.privateChat || isAdmin(userId: fromMemberId, chatID: fromChatId)) else {
+        bot.sendMessageAsync(fromChatId, "This command is only available to admins and creators ☹️")
+        return false
+    }
     
     let arguments = context.args.scanWords()
-    guard arguments.count == 1 else { return true }
+    guard arguments.count == 1 else {
+        bot.sendMessageAsync(fromChatId, "Please provide an argument. [Trigger] ☹️")
+        return true
+    }
     
-    forget(arguments.first!, forChat: fromChatId)
+    if forget(arguments.first!, forChat: fromChatId){
+        bot.sendMessageAsync(fromChatId, "Rule removed! 🎊 : \(arguments.first!)")
+        return true
+    }
     
-    return true
+    return false
 }
 
 router["list"] = { context in
@@ -114,14 +143,14 @@ router["list"] = { context in
     
     if correctionsForChat != nil {
         
-        var message: String = "Trigger : Correction \n ---------------"
+        var message: String = " 📏 *Rules for this chat:* 📏 "
         
         correctionsForChat!.forEach({ (trigger,correction) in
             message.append("\n")
-            message.append("\(trigger) : \(correction)")
+            message.append("*\(trigger)* : \(correction)")
         })
         
-        bot.sendMessageAsync(chat, message)
+        bot.sendMessageAsync(chat, message, parse_mode: "Markdown", disable_web_page_preview: false, disable_notification: true, reply_to_message_id: nil, reply_markup: nil, queue: DispatchQueue.main, completion: nil)
         
         return true
     }
@@ -136,15 +165,15 @@ while let update = bot.nextUpdateSync() {
         let text = update.message?.text
         else { continue }
     
+    if !allCorrections.keys.contains(chatId) {
+        loadFromFile(for: chatId)
+    }
+    
     // For some reason, the router will process all text as a command.
     // So for now, only process commands that truly start with a forward slash.
     if text.starts(with: "/") {
         try router.process(update: update)
         continue
-    }
-
-    if !allCorrections.keys.contains(chatId) {
-        loadFromFile(for: chatId)
     }
 
     guard let correctionsForChat = allCorrections[chatId] else { continue }
@@ -158,4 +187,5 @@ while let update = bot.nextUpdateSync() {
 
     bot.sendMessageAsync(chat_id: chatId, text: "\(correctionsForChat[triggeredIndex].1)*", parse_mode: nil, disable_web_page_preview: nil, disable_notification: true, reply_to_message_id: update.message?.message_id, reply_markup: nil, queue: DispatchQueue.main, completion: nil)
 }
+
 fatalError("Server stopped due to error: \(String(describing: bot.lastError))")
