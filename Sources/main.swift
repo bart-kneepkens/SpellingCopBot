@@ -142,25 +142,27 @@ while let update = bot.nextUpdateSync() {
         let text = update.message?.text
         else { continue }
     
-    // For some reason, the router will process all text as a command.
-    // So for now, only process commands that truly start with a forward slash.
-    if text.starts(with: "/") {
-        try router.process(update: update)
-        continue
-    }
+//    // For some reason, the router will process all text as a command.
+//    // So for now, only process commands that truly start with a forward slash.
+//    if text.starts(with: "/") {
+//        try router.process(update: update)
+//        continue
+//    }
+//
+//    guard allCorrections.keys.contains(chatId) else { continue }
+//
+//    guard let correctionsForChat = allCorrections[chatId] else { continue }
+//    guard !correctionsForChat.isEmpty else { continue }
+//
+//    let processed = text.lowercased()
+//        .trimmed(set: CharacterSet.illegalCharacters)
+//        .trimmed(set: CharacterSet.whitespacesAndNewlines)
+//
+//    guard let triggeredIndex = correctionsForChat.index(where: {processed.contains($0.0)}) else { continue }
+//
+//    bot.sendMessageAsync(chat_id: chatId, text: "\(correctionsForChat[triggeredIndex].1)*", parse_mode: nil, disable_web_page_preview: nil, disable_notification: true, reply_to_message_id: update.message?.message_id, reply_markup: nil, queue: DispatchQueue.main, completion: nil)
+//}
     
-    guard allCorrections.keys.contains(chatId) else { continue }
-    
-    guard let correctionsForChat = allCorrections[chatId] else { continue }
-    guard !correctionsForChat.isEmpty else { continue }
-    
-    let processed = text.lowercased()
-        .trimmed(set: CharacterSet.illegalCharacters)
-        .trimmed(set: CharacterSet.whitespacesAndNewlines)
-    
-    guard let triggeredIndex = correctionsForChat.index(where: {processed.contains($0.0)}) else { continue }
-    
-    bot.sendMessageAsync(chat_id: chatId, text: "\(correctionsForChat[triggeredIndex].1)*", parse_mode: nil, disable_web_page_preview: nil, disable_notification: true, reply_to_message_id: update.message?.message_id, reply_markup: nil, queue: DispatchQueue.main, completion: nil)
+    bot.sendMessageSync(chatId, "hi")
 }
-
 fatalError("Server stopped due to error: \(String(describing: bot.lastError))")
