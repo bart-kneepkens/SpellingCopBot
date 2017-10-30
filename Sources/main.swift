@@ -14,6 +14,27 @@ let router = Router(bot: bot)
 
 var allCorrections: [Chat: [Trigger: Correction]] = [:]
 
+fileprivate func loadFromFile(for chat: Chat) {
+    let fp = fopen("/var/lib/dtb/\(chat)", "r"); defer {fclose(fp)}
+    guard fp != nil else { return }
+    var outputString = ""
+    let chunkSize = 1024
+    let buffer: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer.allocate(capacity: chunkSize); defer {buffer.deallocate(capacity: chunkSize)}
+    repeat {
+        let count: Int = fread(buffer, 1, chunkSize, fp)
+        guard ferror(fp) == 0 else {break}
+        if count > 0 {
+            outputString += String((0..<count).map ({Character(UnicodeScalar(buffer[$0]))}))
+        }
+    } while feof(fp) == 0
+    
+    guard !outputString.isEmpty else { return }
+    
+    let j = JSON.parse(string: outputString)
+    
+    allCorrections[chat] = j.dictionaryObject as! [Trigger: Correction]
+}
+
 fileprivate func saveToFile(for chat: Chat) {
     guard let correctionsForChat = allCorrections[chat] else { return }
     let j = JSON(correctionsForChat)
@@ -24,32 +45,6 @@ fileprivate func saveToFile(for chat: Chat) {
     var byteArray : [UInt8] = Array(jsonString.utf8)
     let _ = fwrite(&byteArray, 1, byteArray.count, fp)
     fclose(fp)
-    
-
-    
-   
-    
-//    try! FileManager.default.createDirectory(atPath: "/var/lib/dcb/", withIntermediateDirectories: false, attributes: nil)
-//
-//    FileManager.default.createFile(atPath: "/var/lib/dcb/kutjebef.json", contents: nil, attributes: nil)
-//
-//    let url = URL(fileURLWithPath: "/var/lib/dcb/kutjebef.json")
-//
-//    try! jsonString.write(to: url, atomically: true, encoding: .utf8)
-    
-//    try! j.stringValue.write(toFile: "", atomically: true, encoding: .utf8)
-//    if let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
-//
-//        let fileURL = dir.appendingPathComponent(String(fileName))
-//
-//        //writing
-//        do {
-////            try j.stringValue.write(to: fileURL, atomically: false, encoding: .utf8)
-//
-//        }
-//        catch {/* error handling here */}
-//    }
-    
 }
 
 fileprivate func isAdmin(userId user: Int64, chatID chat: Chat) -> Bool {
@@ -148,7 +143,9 @@ while let update = bot.nextUpdateSync() {
         continue
     }
 
-    guard allCorrections.keys.contains(chatId) else { continue }
+    if !allCorrections.keys.contains(chatId) {
+        loadFromFile(for: chatId)
+    }
 
     guard let correctionsForChat = allCorrections[chatId] else { continue }
     guard !correctionsForChat.isEmpty else { continue }
