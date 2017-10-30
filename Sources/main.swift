@@ -1,5 +1,6 @@
 import Foundation
 import TelegramBot
+import SwiftyJSON
 
 typealias Trigger = String
 typealias Correction = String
@@ -10,6 +11,47 @@ let bot = TelegramBot(token: token)
 let router = Router(bot: bot)
 
 var allCorrections: [Chat: [Trigger: Correction]] = [:]
+
+func printDefaultPath() {
+    print("-----", try! FileManager.default.url(for: .documentDirectory, in: .allDomainsMask, appropriateFor: nil, create: false))
+}
+
+printDefaultPath()
+
+print("BLABLALA: \(UserDefaults.standard.bool(forKey: "blabla"))")
+
+UserDefaults.standard.set(true, forKey: "blabla")
+
+fileprivate func saveToFile(for chat: Chat) {
+    guard let correctionsForChat = allCorrections[chat] else { return }
+    let j = JSON(correctionsForChat)
+    
+    guard let jsonString = j.rawString() else { return }
+    
+   
+    
+//    try! FileManager.default.createDirectory(atPath: "/var/lib/dcb/", withIntermediateDirectories: false, attributes: nil)
+//
+//    FileManager.default.createFile(atPath: "/var/lib/dcb/kutjebef.json", contents: nil, attributes: nil)
+//
+//    let url = URL(fileURLWithPath: "/var/lib/dcb/kutjebef.json")
+//
+//    try! jsonString.write(to: url, atomically: true, encoding: .utf8)
+    
+//    try! j.stringValue.write(toFile: "", atomically: true, encoding: .utf8)
+//    if let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+//
+//        let fileURL = dir.appendingPathComponent(String(fileName))
+//
+//        //writing
+//        do {
+////            try j.stringValue.write(to: fileURL, atomically: false, encoding: .utf8)
+//
+//        }
+//        catch {/* error handling here */}
+//    }
+    
+}
 
 fileprivate func isAdmin(userId user: Int64, chatID chat: Chat) -> Bool {
     guard let chatMember = bot.getChatMemberSync(chat_id: chat, user_id: user) else { return false }
@@ -23,6 +65,10 @@ fileprivate func persist(trigger: Trigger, withCorrection correction: Correction
     }
     
     allCorrections[chat] = [trigger:correction]
+    
+    DispatchQueue.main.async {
+        saveToFile(for: chat)
+    }
 }
 
 fileprivate func forget(_ trigger: Trigger, forChat chat: Chat ) {
