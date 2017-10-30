@@ -32,7 +32,7 @@ fileprivate func loadFromFile(for chat: Chat) {
     
     let j = JSON.parse(string: outputString)
     
-    allCorrections[chat] = j.dictionaryObject as! [Trigger: Correction]
+    allCorrections[chat] = j.dictionaryObject as? [Trigger: Correction]
 }
 
 fileprivate func saveToFile(for chat: Chat) {
@@ -74,7 +74,7 @@ fileprivate func forget(_ trigger: Trigger, forChat chat: Chat ) {
     }
 }
 
-router["add_correction"] = { context in
+router["add_rule"] = { context in
     guard   let fromMemberId = context.fromId,
             let fromChatId = context.chatId,
             (context.privateChat || isAdmin(userId: fromMemberId, chatID: fromChatId))
@@ -89,7 +89,7 @@ router["add_correction"] = { context in
     return true
 }
 
-router["remove_correction"] = { context in
+router["remove_rule"] = { context in
     guard   let fromMemberId = context.fromId,
             let fromChatId = context.chatId,
             (context.privateChat || isAdmin(userId: fromMemberId, chatID: fromChatId))
