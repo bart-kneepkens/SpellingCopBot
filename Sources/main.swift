@@ -13,21 +13,15 @@ let router = Router(bot: bot)
 
 var allCorrections: [Chat: [Trigger: Correction]] = [:]
 
-func printDefaultPath() {
-    print("-----", try! FileManager.default.url(for: .documentDirectory, in: .allDomainsMask, appropriateFor: nil, create: false))
-}
-
-printDefaultPath()
-
-print("BLABLALA: \(UserDefaults.standard.bool(forKey: "blabla"))")
-
-UserDefaults.standard.set(true, forKey: "blabla")
-
 fileprivate func saveToFile(for chat: Chat) {
     guard let correctionsForChat = allCorrections[chat] else { return }
     let j = JSON(correctionsForChat)
     
     guard let jsonString = j.rawString() else { return }
+    
+    try! FileManager.default.createFile(atPath: "blabla.json", contents: nil, attributes: nil)
+    
+    try! "KUTJEBEf".write
     
    
     
