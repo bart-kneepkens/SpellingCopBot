@@ -1,6 +1,7 @@
 import Foundation
 import TelegramBot
 import SwiftyJSON
+import Dispatch
 
 typealias Trigger = String
 typealias Correction = String
