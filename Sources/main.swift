@@ -191,7 +191,7 @@ while let update = bot.nextUpdateSync() {
     
     // For some reason, the router will process all text as a command.
     // So for now, only process commands that truly start with a forward slash.
-    if text.starts(with: "/") {
+    guard let firstCharacter = text.characters.first, firstCharacter != "/" else {
         try router.process(update: update)
         continue
     }
