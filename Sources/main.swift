@@ -2,7 +2,6 @@ import Foundation
 import TelegramBot
 import SwiftyJSON
 import Dispatch
-import Darwin
 
 typealias Trigger = String
 typealias Correction = String
