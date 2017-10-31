@@ -14,24 +14,24 @@ let router = Router(bot: bot)
 var allCorrections: [Chat: [Trigger: Correction]] = [:]
 
 fileprivate func loadFromFile(for chat: Chat) {
-    let fp = fopen("/var/lib/dsb/\(chat)", "r"); defer {fclose(fp)}
-    guard fp != nil else { return }
-    var outputString = ""
-    let chunkSize = 1024
-    let buffer: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer.allocate(capacity: chunkSize); defer {buffer.deallocate(capacity: chunkSize)}
-    repeat {
-        let count: Int = fread(buffer, 1, chunkSize, fp)
-        guard ferror(fp) == 0 else {break}
-        if count > 0 {
-            outputString += String((0..<count).map ({Character(UnicodeScalar(buffer[$0]))}))
-        }
-    } while feof(fp) == 0
-    
-    guard !outputString.isEmpty else { return }
-    
-    let j = JSON.parse(string: outputString)
-    
-    allCorrections[chat] = j.dictionaryObject as? [Trigger: Correction]
+//    let fp = fopen("/var/lib/dsb/\(chat)", "r"); defer {fclose(fp)}
+//    guard fp != nil else { return }
+//    var outputString = ""
+//    let chunkSize = 1024
+//    let buffer: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer.allocate(capacity: chunkSize); defer {buffer.deallocate(capacity: chunkSize)}
+//    repeat {
+//        let count: Int = fread(buffer, 1, chunkSize, fp)
+//        guard ferror(fp) == 0 else {break}
+//        if count > 0 {
+//            outputString += String((0..<count).map ({Character(UnicodeScalar(buffer[$0]))}))
+//        }
+//    } while feof(fp) == 0
+//    
+//    guard !outputString.isEmpty else { return }
+//    
+//    let j = JSON.parse(string: outputString)
+//    
+//    allCorrections[chat] = j.dictionaryObject as? [Trigger: Correction]
 }
 
 fileprivate func saveToFile(for chat: Chat) {
@@ -40,12 +40,12 @@ fileprivate func saveToFile(for chat: Chat) {
     
     guard let jsonString = j.rawString() else { return }
     
-    mkdir("var/lib/dsb", 777)
-    
-    let fp = fopen("/var/lib/dsb/\(chat)", "w")
-    var byteArray : [UInt8] = Array(jsonString.utf8)
-    let _ = fwrite(&byteArray, 1, byteArray.count, fp)
-    fclose(fp)
+//    mkdir("var/lib/dsb", 777)
+//
+//    let fp = fopen("/var/lib/dsb/\(chat)", "w")
+//    var byteArray : [UInt8] = Array(jsonString.utf8)
+//    let _ = fwrite(&byteArray, 1, byteArray.count, fp)
+//    fclose(fp)
 }
 
 fileprivate func isAdmin(userId user: Int64, chatID chat: Chat) -> Bool {
