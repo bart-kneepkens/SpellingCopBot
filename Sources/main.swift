@@ -14,10 +14,6 @@ let router = Router(bot: bot)
 var allCorrections: [Chat: [Trigger: Correction]] = [:]
 
 fileprivate func loadFromFile(for chat: Chat) {
-    if stat("/var/lib/dsb", nil) == -1 {
-        return
-    }
-    
     let fp = fopen("/var/lib/dsb/\(chat)", "r"); defer {fclose(fp)}
     guard fp != nil else { return }
     var outputString = ""
@@ -44,9 +40,7 @@ fileprivate func saveToFile(for chat: Chat) {
     
     guard let jsonString = j.rawString() else { return }
     
-    if stat("/var/lib/dsb", nil) == -1 {
-        mkdir("var/lib/dsb", 777)
-    }
+    mkdir("var/lib/dsb", 777)
     
     let fp = fopen("/var/lib/dsb/\(chat)", "w")
     var byteArray : [UInt8] = Array(jsonString.utf8)
