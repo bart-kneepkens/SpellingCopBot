@@ -102,7 +102,7 @@ router["add_rule"] = { context in
     }
     
     if persist(trigger: arguments.first!, withCorrection: arguments.last!, forChat: fromChatId) {
-        bot.sendMessageAsync(fromChatId, "Rule added 🎊 : \(arguments.first!)")
+        bot.sendMessageAsync(fromChatId, "Rule added 🎊 : \(arguments.first!) -> \(argument.last!)")
         return true
     }
     
