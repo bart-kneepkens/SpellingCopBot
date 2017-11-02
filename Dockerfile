@@ -69,4 +69,4 @@ RUN swift build
 
 RUN mkdir /var/lib/dcb
 
-ENTRYPOINT ["/miakobot/.build/debug/miakoBot"]
+ENTRYPOINT ["/.build/debug/miakoBot"]

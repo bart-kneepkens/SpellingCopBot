@@ -14,7 +14,8 @@ let router = Router(bot: bot)
 var allCorrections: [Chat: [Trigger: Correction]] = [:]
 
 fileprivate func loadFromFile(for chat: Chat) {
-    let fp = fopen("/var/lib/dsb/\(chat)", "r"); defer {fclose(fp)}
+    guard access("/var/lib/dcb/\(chat)", 0x04) == 0 else { return }
+    let fp = fopen("/var/lib/dcb/\(chat)", "r"); defer {fclose(fp)}
     guard fp != nil else { return }
     var outputString = ""
     let chunkSize = 1024
@@ -26,23 +27,20 @@ fileprivate func loadFromFile(for chat: Chat) {
             outputString += String((0..<count).map ({Character(UnicodeScalar(buffer[$0]))}))
         }
     } while feof(fp) == 0
-    
+
     guard !outputString.isEmpty else { return }
-    
+
     let j = JSON.parse(string: outputString)
-    
+
     allCorrections[chat] = j.dictionaryObject as? [Trigger: Correction]
 }
 
 fileprivate func saveToFile(for chat: Chat) {
     guard let correctionsForChat = allCorrections[chat] else { return }
     let j = JSON(correctionsForChat)
-    
     guard let jsonString = j.rawString() else { return }
-    
-//    mkdir("var/lib/dsb", 777)
-
-    let fp = fopen("/var/lib/dsb/\(chat)", "w")
+    let fp = fopen("/var/lib/dcb/\(chat)", "w+")
+    guard fp != nil else {return}
     var byteArray : [UInt8] = Array(jsonString.utf8)
     let _ = fwrite(&byteArray, 1, byteArray.count, fp)
     fclose(fp)
@@ -180,7 +178,7 @@ router["yell"] = { context in
     return true
 }
 
-while let update = bot.nextUpdateSync() {
+while var update = bot.nextUpdateSync() {
     guard   let chatId = update.message?.chat.id,
         let text = update.message?.text
         else { continue }
@@ -191,7 +189,10 @@ while let update = bot.nextUpdateSync() {
     
     // For some reason, the router will process all text as a command.
     // So for now, only process commands that truly start with a forward slash.
-    guard let firstCharacter = text.characters.first, firstCharacter != "/" else {
+    guard !text.hasPrefix("/") else {
+        if text.contains("@DankSpellingBot") {
+            update.message?.text = text.replacingOccurrences(of: "@DankSpellingBot", with: "")
+        }
         try router.process(update: update)
         continue
     }
@@ -206,6 +207,12 @@ while let update = bot.nextUpdateSync() {
     guard let triggeredIndex = correctionsForChat.index(where: {processed.contains($0.0)}) else { continue }
 
     bot.sendMessageAsync(chat_id: chatId, text: "\(correctionsForChat[triggeredIndex].1)*", parse_mode: nil, disable_web_page_preview: nil, disable_notification: true, reply_to_message_id: update.message?.message_id, reply_markup: nil, queue: DispatchQueue.main, completion: nil)
+}
+
+// Dirty, dirty hack. telegram-bot-swift has an issue which makes the app un-responding after a while of inactivity.
+// This way, it will stay alive.
+DispatchQueue.main.asyncAfter(deadline: DispatchTime(uptimeNanoseconds: 1000000)) {
+    
 }
 
 fatalError("Server stopped due to error: \(String(describing: bot.lastError))")
