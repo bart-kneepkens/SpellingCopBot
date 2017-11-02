@@ -138,7 +138,7 @@ router["list"] = { context in
     
     let correctionsForChat = allCorrections[chat]
     
-    if correctionsForChat != nil {
+    if correctionsForChat != nil, !correctionsForChat!.isEmpty {
         
         var message: String = " 📏 *Rules for this chat:* 📏 "
         
@@ -190,8 +190,8 @@ while var update = bot.nextUpdateSync() {
     // For some reason, the router will process all text as a command.
     // So for now, only process commands that truly start with a forward slash.
     guard !text.hasPrefix("/") else {
-        if text.contains("@DankSpellingBot") {
-            update.message?.text = text.replacingOccurrences(of: "@DankSpellingBot", with: "")
+        if text.contains("@MiakoBot") {
+            update.message?.text = text.replacingOccurrences(of: "@MiakoBot", with: "")
         }
         try router.process(update: update)
         continue
