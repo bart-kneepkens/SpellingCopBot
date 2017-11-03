@@ -59,10 +59,6 @@ RUN SWIFT_URL=https://swift.org/builds/$SWIFT_BRANCH/$(echo "$SWIFT_PLATFORM" | 
 # Print Installed Swift Version
 RUN swift --version
 
-#RUN git clone https://github.com/bart-kneepkens/miakobot.git \
-    #&& cd miakobot \
-    #&& swift build
-
 WORKDIR .
 ADD . .
 RUN swift build
