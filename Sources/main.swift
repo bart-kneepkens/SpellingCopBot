@@ -178,6 +178,17 @@ router["yell"] = { context in
     return true
 }
 
+// Dirty, dirty hack. telegram-bot-swift has an issue which makes the app un-responding after a while of inactivity.
+// This way, it will stay alive.
+let timer = DispatchSource.makeTimerSource()
+fileprivate func keepMeAlive() {
+    timer.scheduleRepeating(deadline: .now(), interval: .seconds(10))
+    timer.setEventHandler(handler: {print("kek")})
+    timer.resume()
+}
+
+keepMeAlive()
+
 while var update = bot.nextUpdateSync() {
     guard   let chatId = update.message?.chat.id,
         let text = update.message?.text
@@ -207,12 +218,6 @@ while var update = bot.nextUpdateSync() {
     guard let triggeredIndex = correctionsForChat.index(where: {processed.contains($0.0)}) else { continue }
 
     bot.sendMessageAsync(chat_id: chatId, text: "\(correctionsForChat[triggeredIndex].1)*", parse_mode: nil, disable_web_page_preview: nil, disable_notification: true, reply_to_message_id: update.message?.message_id, reply_markup: nil, queue: DispatchQueue.main, completion: nil)
-}
-
-// Dirty, dirty hack. telegram-bot-swift has an issue which makes the app un-responding after a while of inactivity.
-// This way, it will stay alive.
-DispatchQueue.main.asyncAfter(deadline: DispatchTime(uptimeNanoseconds: 1000000)) {
-    
 }
 
 fatalError("Server stopped due to error: \(String(describing: bot.lastError))")
