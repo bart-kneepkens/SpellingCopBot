@@ -239,7 +239,7 @@ while var update = bot.nextUpdateSync() {
         .trimmed(set: CharacterSet.illegalCharacters)
         .trimmed(set: CharacterSet.whitespacesAndNewlines)
 
-    guard let triggeredIndex = correctionsForChat.index(where: {processed.contains($0.0)}) else { continue }
+    guard let triggeredIndex = correctionsForChat.index(where: {processed.contains($0.0.lowercased())}) else { continue }
 
     bot.sendMessageAsync(chat_id: chatId, text: "\(correctionsForChat[triggeredIndex].1)*", parse_mode: nil, disable_web_page_preview: nil, disable_notification: true, reply_to_message_id: update.message?.message_id, reply_markup: nil, queue: DispatchQueue.main, completion: nil)
 }
