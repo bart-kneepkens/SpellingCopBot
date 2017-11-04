@@ -13,66 +13,23 @@ let router = Router(bot: bot)
 
 var allCorrections: [Chat: [Trigger: Correction]] = [:]
 
-fileprivate func loadFromFile(for chat: Chat) {
-    guard access("/var/lib/dcb/\(chat)", 0x04) == 0 else { return }
-    let fp = fopen("/var/lib/dcb/\(chat)", "r"); defer {fclose(fp)}
-    guard fp != nil else { return }
-    var outputString = ""
-    let chunkSize = 1024
-    let buffer: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer.allocate(capacity: chunkSize); defer {buffer.deallocate(capacity: chunkSize)}
-    repeat {
-        let count: Int = fread(buffer, 1, chunkSize, fp)
-        guard ferror(fp) == 0 else {break}
-        if count > 0 {
-            outputString += String((0..<count).map ({Character(UnicodeScalar(buffer[$0]))}))
-        }
-    } while feof(fp) == 0
-
-    guard !outputString.isEmpty else { return }
-
-    let j = JSON.parse(string: outputString)
-    
-    guard let readCorrections = j.dictionaryObject as? [Trigger: Correction] else { return }
-    
-    var decodedCorrections: [Trigger: Correction] = [:]
-    
-    readCorrections.forEach { pair in
-        decodedCorrections[decode(pair.key) ?? pair.key] = decode(pair.value) ?? pair.value
+fileprivate func readFromFile(for chat: Chat) {
+    DispatchQueue.main.async {
+        guard let readRules = RulesPersistence.shared.readRules(for: chat) else { return }
+        allCorrections[chat] = readRules
     }
-    
-    allCorrections[chat] = decodedCorrections
 }
 
 fileprivate func saveToFile(for chat: Chat) {
-    guard let correctionsForChat = allCorrections[chat] else { return }
-    var encodedCorrectionsForChat: [Trigger: Correction] = [:]
-    
-    correctionsForChat.forEach { pair in
-        encodedCorrectionsForChat[encode(pair.key)] = encode(pair.value)
+    DispatchQueue.main.async {
+        guard let rulesForChat = allCorrections[chat] else { return }
+        RulesPersistence.shared.save(rules: rulesForChat, for: chat)
     }
-    
-    let j = JSON(encodedCorrectionsForChat)
-    guard let jsonString = j.rawString() else { return }
-    let fp = fopen("/var/lib/dcb/\(chat)", "w+")
-    guard fp != nil else {return}
-    var byteArray : [UInt8] = Array(jsonString.utf8)
-    let _ = fwrite(&byteArray, 1, byteArray.count, fp)
-    fclose(fp)
 }
 
 fileprivate func isAdmin(userId user: Int64, chatID chat: Chat) -> Bool {
     guard let chatMember = bot.getChatMemberSync(chat_id: chat, user_id: user) else { return false }
     return chatMember.status == .administrator || chatMember.status == .creator
-}
-
-fileprivate func encode(_ s: String) -> String {
-    let data = s.data(using: .nonLossyASCII, allowLossyConversion: true)!
-    return String(data: data, encoding: .utf8)!
-}
-
-fileprivate func decode(_ s: String) -> String? {
-    let data = s.data(using: .utf8)!
-    return String(data: data, encoding: .nonLossyASCII)
 }
 
 fileprivate func persist(trigger: Trigger, withCorrection correction: Correction, forChat chat: Chat) -> Bool {
@@ -86,9 +43,7 @@ fileprivate func persist(trigger: Trigger, withCorrection correction: Correction
         allCorrections[chat] = [trigger:correction]
     }
     
-    DispatchQueue.main.async {
-        saveToFile(for: chat)
-    }
+    saveToFile(for: chat)
     
     return true
 }
@@ -100,9 +55,7 @@ fileprivate func forget(_ trigger: Trigger, forChat chat: Chat) -> Bool {
     if correctionsForChat.keys.contains(trigger) {
         allCorrections[chat]!.removeValue(forKey: trigger)
         
-        DispatchQueue.main.async {
-            saveToFile(for: chat)
-        }
+        saveToFile(for: chat)
         return true
     }
     bot.sendMessageAsync(chat, "I'm dividing by zero! 💥 \nThere is no such rule to remove!")
@@ -218,8 +171,8 @@ while var update = bot.nextUpdateSync() {
         let text = update.message?.text
         else { continue }
     
-    if !allCorrections.keys.contains(chatId) {
-        loadFromFile(for: chatId)
+    if allCorrections[chatId] == nil {
+        readFromFile(for: chatId)
     }
     
     // For some reason, the router will process all text as a command.
