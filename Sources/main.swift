@@ -31,13 +31,27 @@ fileprivate func loadFromFile(for chat: Chat) {
     guard !outputString.isEmpty else { return }
 
     let j = JSON.parse(string: outputString)
-
-    allCorrections[chat] = j.dictionaryObject as? [Trigger: Correction]
+    
+    guard let readCorrections = j.dictionaryObject as? [Trigger: Correction] else { return }
+    
+    var decodedCorrections: [Trigger: Correction] = [:]
+    
+    readCorrections.forEach { pair in
+        decodedCorrections[decode(pair.key) ?? pair.key] = decode(pair.value) ?? pair.value
+    }
+    
+    allCorrections[chat] = decodedCorrections
 }
 
 fileprivate func saveToFile(for chat: Chat) {
     guard let correctionsForChat = allCorrections[chat] else { return }
-    let j = JSON(correctionsForChat)
+    var encodedCorrectionsForChat: [Trigger: Correction] = [:]
+    
+    correctionsForChat.forEach { pair in
+        encodedCorrectionsForChat[encode(pair.key)] = encode(pair.value)
+    }
+    
+    let j = JSON(encodedCorrectionsForChat)
     guard let jsonString = j.rawString() else { return }
     let fp = fopen("/var/lib/dcb/\(chat)", "w+")
     guard fp != nil else {return}
@@ -49,6 +63,16 @@ fileprivate func saveToFile(for chat: Chat) {
 fileprivate func isAdmin(userId user: Int64, chatID chat: Chat) -> Bool {
     guard let chatMember = bot.getChatMemberSync(chat_id: chat, user_id: user) else { return false }
     return chatMember.status == .administrator || chatMember.status == .creator
+}
+
+fileprivate func encode(_ s: String) -> String {
+    let data = s.data(using: .nonLossyASCII, allowLossyConversion: true)!
+    return String(data: data, encoding: .utf8)!
+}
+
+fileprivate func decode(_ s: String) -> String? {
+    let data = s.data(using: .utf8)!
+    return String(data: data, encoding: .nonLossyASCII)
 }
 
 fileprivate func persist(trigger: Trigger, withCorrection correction: Correction, forChat chat: Chat) -> Bool {
@@ -183,7 +207,7 @@ router["yell"] = { context in
 let timer = DispatchSource.makeTimerSource()
 fileprivate func keepMeAlive() {
     timer.scheduleRepeating(deadline: .now(), interval: .seconds(10))
-    timer.setEventHandler(handler: {print("kek")})
+    timer.setEventHandler(handler: {})
     timer.resume()
 }
 
