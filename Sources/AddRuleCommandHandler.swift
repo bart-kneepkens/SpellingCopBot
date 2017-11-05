@@ -25,7 +25,7 @@ func addRuleCommandHandler(context: Context) -> Bool {
     }
     
     do {
-        try ruleBook.add(ruleWithTrigger: arguments.first!, correction: arguments.last!, for: fromChatId)
+        try RuleBook.shared.add(ruleWithTrigger: arguments.first!, correction: arguments.last!, for: fromChatId)
     } catch RuleBookError.ruleAlreadyExists {
         context.bot.sendMessageAsync(fromChatId, "There is already a rule with this trigger! 🔫")
         return true

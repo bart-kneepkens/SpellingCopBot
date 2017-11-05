@@ -25,7 +25,7 @@ func removeRuleCommandHandler(context: Context) -> Bool {
     }
     
     do {
-        try ruleBook.remove(ruleWith: arguments.first!, for: fromChatId)
+        try RuleBook.shared.remove(ruleWith: arguments.first!, for: fromChatId)
     } catch RuleBookError.ruleDoesNotExist {
         context.bot.sendMessageAsync(fromChatId, "I'm dividing by zero! 💥 \nThere is no such rule to remove!")
         return true

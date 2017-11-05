@@ -11,7 +11,7 @@ import TelegramBot
 func listCommandHandler(context: Context) -> Bool {
     guard let chat = context.chatId else { return false }
     
-    let correctionsForChat = ruleBook.rules(for: chat)
+    let correctionsForChat = RuleBook.shared.rules(for: chat)
     
     if correctionsForChat != nil, !correctionsForChat!.isEmpty {
         

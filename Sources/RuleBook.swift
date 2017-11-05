@@ -13,6 +13,8 @@ enum RuleBookError: Error {
 }
 
 class RuleBook {
+    private init(){}
+    static let shared = RuleBook()
     private var allRules: [Chat: [Trigger: Correction]] = [:]
     
     func loadRulesIfNeeded(for chat: Chat) {
