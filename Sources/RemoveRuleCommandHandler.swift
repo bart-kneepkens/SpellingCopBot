@@ -1,5 +1,5 @@
 //
-//  AddRuleHandler.swift
+//  RemoveRuleHandler.swift
 //  miakoBot
 //
 //  Created by Bart Kneepkens on 05/11/2017.
@@ -8,7 +8,7 @@
 import Foundation
 import TelegramBot
 
-func addRuleHandler(context: Context) -> Bool {
+func removeRuleCommandHandler(context: Context) -> Bool {
     guard   let fromMemberId = context.fromId,
         let fromChatId = context.chatId
         else { return false }
@@ -19,21 +19,21 @@ func addRuleHandler(context: Context) -> Bool {
     }
     
     let arguments = context.args.scanWords()
-    guard arguments.count == 2 else {
-        context.bot.sendMessageAsync(fromChatId, "Please provide two arguments. [Trigger] [Correction] ☹️")
+    guard arguments.count == 1 else {
+        context.bot.sendMessageAsync(fromChatId, "Please provide an argument. [Trigger] ☹️")
         return true
     }
     
     do {
-        try ruleBook.add(ruleWithTrigger: arguments.first!, correction: arguments.last!, for: fromChatId)
-    } catch RuleBookError.ruleAlreadyExists {
-        context.bot.sendMessageAsync(fromChatId, "There is already a rule with this trigger! 🔫")
+        try ruleBook.remove(ruleWith: arguments.first!, for: fromChatId)
+    } catch RuleBookError.ruleDoesNotExist {
+        context.bot.sendMessageAsync(fromChatId, "I'm dividing by zero! 💥 \nThere is no such rule to remove!")
         return true
     } catch {
-        return true
+        return true 
     }
     
-    context.bot.sendMessageAsync(fromChatId, "Rule added 🎊 : \(arguments.first!) -> \(arguments.last!)")
+    context.bot.sendMessageAsync(fromChatId, "Rule removed! 🎊 : \(arguments.first!)")
     
     return true
 }
