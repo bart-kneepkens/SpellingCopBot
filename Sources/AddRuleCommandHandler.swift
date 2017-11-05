@@ -8,12 +8,16 @@
 import Foundation
 import TelegramBot
 
+/// Handles a 'add rule' command.
+///
+/// - Parameter context: The context containing information on the command call
+/// - Returns: `true` if the command matcher should stop, `false` if the command matcher should try other paths (From TelegramBot)
 func addRuleCommandHandler(context: Context) -> Bool {
     guard   let fromMemberId = context.fromId,
         let fromChatId = context.chatId
         else { return false }
     
-    guard (context.privateChat || context.isAdmin(userId: fromMemberId, in: fromChatId)) else {
+    guard (context.privateChat || context.isAdminOrCreator(user: fromMemberId, in: fromChatId)) else {
         context.bot.sendMessageAsync(fromChatId, "This command is only available to admins and creators ☹️")
         return false
     }
@@ -21,7 +25,7 @@ func addRuleCommandHandler(context: Context) -> Bool {
     let arguments = context.args.scanWords()
     guard arguments.count == 2 else {
         context.bot.sendMessageAsync(fromChatId, "Please provide two arguments. [Trigger] [Correction] ☹️")
-        return true
+        return false
     }
     
     do {
@@ -34,6 +38,5 @@ func addRuleCommandHandler(context: Context) -> Bool {
     }
     
     context.bot.sendMessageAsync(fromChatId, "Rule added 🎊 : \(arguments.first!) -> \(arguments.last!)")
-    
     return true
 }

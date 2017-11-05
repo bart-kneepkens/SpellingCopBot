@@ -21,7 +21,6 @@ class RuleBook {
     static let shared = RuleBook()
     private var allRules: [Chat: [Trigger: Correction]] = [:]
     
-    
     /// Loads rules from the persistence files into the rulebook memory, but only if they have not been loaded into memory before.
     ///
     /// - Parameter chat: The chat identifier for which the rules should be loaded
@@ -74,6 +73,10 @@ class RuleBook {
     func rules(for chat: Chat) -> [Trigger: Correction]? {
         return allRules[chat]
     }
+}
+
+// MARK: - Private helpers
+extension RuleBook {
     
     /// Persists the rules for a certain chat to the persistence files.
     ///

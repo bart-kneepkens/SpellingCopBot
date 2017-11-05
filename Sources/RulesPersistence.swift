@@ -13,11 +13,17 @@ fileprivate let fOpenModeRead = "r"
 fileprivate let readChunkSize = 1024
 fileprivate let accessModeR_OK: Int32 = 0x04
 
+/// `RulesPersistence` saves and reads rules to and from the persistence files.
 class RulesPersistence {
     
     private init(){}
     static let shared = RulesPersistence()
     
+    /// Saves rules to a chat's persistence file.
+    ///
+    /// - Parameters:
+    ///   - rules: The rules that should be saved to the persistent file
+    ///   - chat: The chat identifier for which the rules should be saved to the persistent file
     func save(rules: [Trigger: Correction], for chat: Chat) {
         var encodedRules: [Trigger: Correction] = [:]
         
@@ -33,6 +39,11 @@ class RulesPersistence {
         let _ = fwrite(&jsonStringAsBytes, 1, jsonStringAsBytes.count, filePointer)
     }
     
+    /// Reads rules from a chat's persistence file.
+    ///
+    /// - Parameter chat: The chat identifier from which the rules should be read
+    /// - Returns: The rules that have been read for this chat's persistent file, `nil` if the file does not exist or it could
+    /// not be read propery
     func readRules(for chat: Chat) -> [Trigger: Correction]? {
         guard access(path(for: chat), accessModeR_OK) == 0 else { return nil }
         guard let filePointer = fopen(path(for: chat), fOpenModeRead) else { return nil }
@@ -57,23 +68,38 @@ class RulesPersistence {
         readCorrections.forEach { pair in
             decodedCorrections[decode(pair.key) ?? pair.key] = decode(pair.value) ?? pair.value
         }
-        
         return decodedCorrections
     }
 }
 
+// MARK: - Private helpers
 extension RulesPersistence {
+    
+    /// Returns the filepath for a chat's persistent file.
+    ///
+    /// - Parameter chat: The chat identifier from which the path should be created
+    /// - Returns: The filepath for the chat's persistent file
     fileprivate func path(for chat: Chat) -> String {
         return "/var/lib/dcb/\(chat)"
     }
 }
 
+// MARK: - Encoding and decoding
 extension RulesPersistence {
+    
+    /// Encodes text to unlossy ascii and returns it in utf8.
+    ///
+    /// - Parameter s: The text to be encoded
+    /// - Returns: The encoded text
     fileprivate func encode(_ s: String) -> String? {
         guard let data = s.data(using: .nonLossyASCII, allowLossyConversion: true) else { return nil }
         return String(data: data, encoding: .utf8)!
     }
     
+    /// Decodes text to utf8 and returns it in unlossy ascii.
+    ///
+    /// - Parameter s: The text to be decoded
+    /// - Returns: The decoded text
     fileprivate func decode(_ s: String) -> String? {
         guard let data = s.data(using: .utf8) else { return nil }
         return String(data: data, encoding: .nonLossyASCII)

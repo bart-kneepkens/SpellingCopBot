@@ -8,6 +8,8 @@
 import Foundation
 import TelegramBot
 
+/// `MiakoBot` is the main class that encloses the functionality for this bot, which is to provide chat members with specified
+/// corrections when they send a message containing a specified trigger.
 class MiakoBot {
     fileprivate let token: String
     fileprivate let bot: TelegramBot
@@ -25,30 +27,39 @@ class MiakoBot {
         })
     }
     
-    
-    /// Starts MiakoBot indefinitely, until a crash is is reported.
+    /// Starts polling the chats containing MiakoBot for updates indefinitely, or until an error is reported.
     func start() {
         while let update = bot.nextUpdateSync() {
             self.onUpdate(update)
         }
         fatalError("Server stopped due to error: \(String(describing: bot.lastError))")
     }
+}
+
+// MARK: - Private helpers
+extension MiakoBot {
     
-    private func onUpdate(_ update: Update) {
+    /// Handles every update for every chat that MiakoBot has been added to.
+    ///
+    /// - Parameter update: The object containing all the update information. (From `TelegramBot`)
+    fileprivate func onUpdate(_ update: Update) {
         guard
             let chatId = update.message?.chat.id,
             let text = update.message?.text
-        else { return }
+            else { return }
         
         RuleBook.shared.loadRulesIfNeeded(for: chatId)
         
-        do { try router.process(update: update) }
-        catch { return }
+        guard !text.hasPrefix("/") else {
+            do { try router.process(update: update) }
+            catch { return }
+            return
+        }
         
         guard
             let rulesForChat = RuleBook.shared.rules(for: chatId),
             !rulesForChat.isEmpty
-        else { return }
+            else { return }
         
         let processed = text.lowercased()
             .trimmed(set: CharacterSet.illegalCharacters)
@@ -56,9 +67,8 @@ class MiakoBot {
         
         guard
             let triggeredIndex = rulesForChat.index(where: {processed.contains($0.0.lowercased())})
-        else { return }
+            else { return }
         
         bot.sendMessageAsync(chat_id: chatId, text: "\(rulesForChat[triggeredIndex].1)*", parse_mode: nil, disable_web_page_preview: nil, disable_notification: true, reply_to_message_id: update.message?.message_id, reply_markup: nil, queue: DispatchQueue.main, completion: nil)
     }
-    
 }
