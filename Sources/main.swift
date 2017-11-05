@@ -12,11 +12,6 @@ fileprivate let bot = TelegramBot(token: token)
 fileprivate let router = Router(bot: bot)
 let ruleBook = RuleBook()
 
-func isAdmin(userId user: Int64, chatID chat: Chat) -> Bool {
-    guard let chatMember = bot.getChatMemberSync(chat_id: chat, user_id: user) else { return false }
-    return chatMember.status == .administrator || chatMember.status == .creator
-}
-
 router["add_rule"] = addRuleCommandHandler
 
 router["remove_rule"] = removeRuleCommandHandler

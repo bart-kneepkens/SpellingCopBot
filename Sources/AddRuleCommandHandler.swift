@@ -13,7 +13,7 @@ func addRuleCommandHandler(context: Context) -> Bool {
         let fromChatId = context.chatId
         else { return false }
     
-    guard (context.privateChat || isAdmin(userId: fromMemberId, chatID: fromChatId)) else {
+    guard (context.privateChat || context.isAdmin(userId: fromMemberId, in: fromChatId)) else {
         context.bot.sendMessageAsync(fromChatId, "This command is only available to admins and creators ☹️")
         return false
     }
