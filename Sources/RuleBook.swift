@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Dispatch
 
 enum RuleBookError: Error {
     /// The `RuleBook` already contains a rule with the specified trigger for the specified chat.

@@ -7,6 +7,7 @@
 
 import Foundation
 import TelegramBot
+import Dispatch
 
 /// `MiakoBot` is the main class that encloses the functionality for this bot, which is to provide chat members with specified
 /// corrections when they send a message containing a specified trigger.

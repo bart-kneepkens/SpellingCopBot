@@ -7,6 +7,7 @@
 
 import Foundation
 import TelegramBot
+import Dispatch
 
 /// Handles a `list rules` command.
 ///
