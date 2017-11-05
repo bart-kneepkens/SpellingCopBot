@@ -21,14 +21,17 @@ class MiakoBot {
             router[CommandName.removeRule.rawValue, .slashRequired] = removeRuleCommandHandler
             router[CommandName.listRules.rawValue, .slashRequired] = listCommandHandler
             router[CommandName.broadcastMessage.rawValue, .slashRequired] = broadcastCommandHandler
-            router.unmatched = nil  // Removes the default 'unsupported command' message if some text is unmatched
+            router.unmatched = nil  // Removes the default 'unsupported command' message if some text is unmatched.
         })
     }
     
+    
+    /// Starts MiakoBot indefinitely, until a crash is is reported.
     func start() {
         while let update = bot.nextUpdateSync() {
             self.onUpdate(update)
         }
+        fatalError("Server stopped due to error: \(String(describing: bot.lastError))")
     }
     
     private func onUpdate(_ update: Update) {
