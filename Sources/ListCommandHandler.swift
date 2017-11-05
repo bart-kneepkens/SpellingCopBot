@@ -20,7 +20,8 @@ func listCommandHandler(context: Context) -> Bool {
         let rulesForChat = RuleBook.shared.rules(for: chat),
         !rulesForChat.isEmpty
     else {
-        context.bot.sendMessageAsync(chat, "There are no rules set up for this chat.")
+        context.bot.sendMessageAsync(chat: chat, text: "There are no rules set up for this chat.",
+                                     replyTo: context.message?.message_id)
         return false
     }
     
@@ -29,15 +30,6 @@ func listCommandHandler(context: Context) -> Bool {
         message.append("\n*\(trigger)* : \(correction)")
     })
     
-    context.bot.sendMessageAsync(chat,
-                                 message,
-                                 parse_mode: "Markdown",
-                                 disable_web_page_preview: false,
-                                 disable_notification: true,
-                                 reply_to_message_id: nil,
-                                 reply_markup: nil,
-                                 queue: DispatchQueue.main,
-                                 completion: nil)
-    
+    context.bot.sendMessageAsync(chat: chat, text: message, replyTo: context.message?.message_id, markdown: true)
     return true
 }
