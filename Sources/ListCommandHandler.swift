@@ -24,11 +24,19 @@ func listCommandHandler(context: Context) -> Bool {
     }
     
     var message: String = " 📏 *Rules for this chat:* 📏 "
-    rulesForChat.forEach({ (trigger,correction) in
+    rulesForChat.forEach({ (trigger, correction) in
         message.append("\n*\(trigger)* : \(correction)")
     })
     
-    context.bot.sendMessageAsync(chat, message, parse_mode: "Markdown", disable_web_page_preview: false, disable_notification: true, reply_to_message_id: nil, reply_markup: nil, queue: DispatchQueue.main, completion: nil)
+    context.bot.sendMessageAsync(chat,
+                                 message,
+                                 parse_mode: "Markdown",
+                                 disable_web_page_preview: false,
+                                 disable_notification: true,
+                                 reply_to_message_id: nil,
+                                 reply_markup: nil,
+                                 queue: DispatchQueue.main,
+                                 completion: nil)
     
     return true
 }

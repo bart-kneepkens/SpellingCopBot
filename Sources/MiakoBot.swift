@@ -51,8 +51,7 @@ extension MiakoBot {
         RuleBook.shared.loadRulesIfNeeded(for: chatId)
         
         guard !text.hasPrefix("/") else {
-            do { try router.process(update: update) }
-            catch { return }
+            do { try router.process(update: update) } catch { return }
             return
         }
         
@@ -69,6 +68,13 @@ extension MiakoBot {
             let triggeredIndex = rulesForChat.index(where: {processed.contains($0.0.lowercased())})
             else { return }
         
-        bot.sendMessageAsync(chat_id: chatId, text: "\(rulesForChat[triggeredIndex].1)*", parse_mode: nil, disable_web_page_preview: nil, disable_notification: true, reply_to_message_id: update.message?.message_id, reply_markup: nil, queue: DispatchQueue.main, completion: nil)
+        bot.sendMessageAsync(chat_id: chatId,
+                             text: "\(rulesForChat[triggeredIndex].1)*",
+                             parse_mode: nil, disable_web_page_preview: nil,
+                             disable_notification: true,
+                             reply_to_message_id: update.message?.message_id,
+                             reply_markup: nil,
+                             queue: DispatchQueue.main,
+                             completion: nil)
     }
 }

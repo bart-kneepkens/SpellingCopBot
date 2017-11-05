@@ -11,12 +11,12 @@ import SwiftyJSON
 fileprivate let fOpenModeWritePlus = "w+"
 fileprivate let fOpenModeRead = "r"
 fileprivate let readChunkSize = 1024
-fileprivate let accessModeR_OK: Int32 = 0x04
+fileprivate let accessModeReadOK: Int32 = 0x04
 
 /// `RulesPersistence` saves and reads rules to and from the persistence files.
 class RulesPersistence {
     
-    private init(){}
+    private init() {}
     static let shared = RulesPersistence()
     
     /// Saves rules to a chat's persistence file.
@@ -36,7 +36,7 @@ class RulesPersistence {
         guard let filePointer = fopen(path(for: chat), fOpenModeWritePlus) else { return }
         defer { fclose(filePointer) }
         var jsonStringAsBytes: [UInt8] = Array(jsonString.utf8)
-        let _ = fwrite(&jsonStringAsBytes, 1, jsonStringAsBytes.count, filePointer)
+        _ = fwrite(&jsonStringAsBytes, 1, jsonStringAsBytes.count, filePointer)
     }
     
     /// Reads rules from a chat's persistence file.
@@ -45,7 +45,7 @@ class RulesPersistence {
     /// - Returns: The rules that have been read for this chat's persistent file, `nil` if the file does not exist or it could
     /// not be read propery
     func readRules(for chat: Chat) -> [Trigger: Correction]? {
-        guard access(path(for: chat), accessModeR_OK) == 0 else { return nil }
+        guard access(path(for: chat), accessModeReadOK) == 0 else { return nil }
         guard let filePointer = fopen(path(for: chat), fOpenModeRead) else { return nil }
         let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: readChunkSize)
         defer { buffer.deallocate(capacity: readChunkSize) }
@@ -89,19 +89,19 @@ extension RulesPersistence {
     
     /// Encodes text to unlossy ascii and returns it in utf8.
     ///
-    /// - Parameter s: The text to be encoded
+    /// - Parameter text: The text to be encoded
     /// - Returns: The encoded text
-    fileprivate func encode(_ s: String) -> String? {
-        guard let data = s.data(using: .nonLossyASCII, allowLossyConversion: true) else { return nil }
+    fileprivate func encode(_ text: String) -> String? {
+        guard let data = text.data(using: .nonLossyASCII, allowLossyConversion: true) else { return nil }
         return String(data: data, encoding: .utf8)!
     }
     
     /// Decodes text to utf8 and returns it in unlossy ascii.
     ///
-    /// - Parameter s: The text to be decoded
+    /// - Parameter text: The text to be decoded
     /// - Returns: The decoded text
-    fileprivate func decode(_ s: String) -> String? {
-        guard let data = s.data(using: .utf8) else { return nil }
+    fileprivate func decode(_ text: String) -> String? {
+        guard let data = text.data(using: .utf8) else { return nil }
         return String(data: data, encoding: .nonLossyASCII)
     }
 }

@@ -17,7 +17,7 @@ enum RuleBookError: Error {
 /// `RuleBook` keeps track of rules for every chat. Its rules can be directly modified and persistence to the persistence files
 /// will happen automatically at the appropriate times.
 class RuleBook {
-    private init(){}
+    private init() {}
     static let shared = RuleBook()
     private var allRules: [Chat: [Trigger: Correction]] = [:]
     
