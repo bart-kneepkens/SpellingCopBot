@@ -47,7 +47,7 @@ extension MiakoBot {
         guard
             let chatId = update.message?.chat.id,
             let text = update.message?.text
-            else { return }
+        else { return }
         
         RuleBook.shared.loadRulesIfNeeded(for: chatId)
         
@@ -59,7 +59,7 @@ extension MiakoBot {
         guard
             let rulesForChat = RuleBook.shared.rules(for: chatId),
             !rulesForChat.isEmpty
-            else { return }
+        else { return }
         
         let processed = text.lowercased()
             .trimmed(set: CharacterSet.illegalCharacters)
@@ -67,15 +67,14 @@ extension MiakoBot {
         
         guard
             let triggeredIndex = rulesForChat.index(where: {processed.contains($0.0.lowercased())})
-            else { return }
+        else { return }
         
-        bot.sendMessageAsync(chat_id: chatId,
-                             text: "\(rulesForChat[triggeredIndex].1)*",
-                             parse_mode: nil, disable_web_page_preview: nil,
-                             disable_notification: true,
-                             reply_to_message_id: update.message?.message_id,
-                             reply_markup: nil,
-                             queue: DispatchQueue.main,
-                             completion: nil)
+        let triggeredRule = rulesForChat[triggeredIndex]
+        
+        let reply = text
+                .replacingOccurrences(of: triggeredRule.key, with: "`\(triggeredRule.value)`")
+                .appending("\\*")
+        
+        bot.sendMessageAsync(chat: chatId, text: reply, replyTo: update.message?.message_id, markdown: true)
     }
 }
