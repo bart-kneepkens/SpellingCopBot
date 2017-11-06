@@ -61,20 +61,34 @@ extension MiakoBot {
             !rulesForChat.isEmpty
         else { return }
         
-        let processed = text.lowercased()
-            .trimmed(set: CharacterSet.illegalCharacters)
-            .trimmed(set: CharacterSet.whitespacesAndNewlines)
+        let words = text
+            .components(separatedBy: " ")
+            .map { component -> String in
+                return component
+                    .lowercased()
+                    .trimmed(set: CharacterSet.illegalCharacters)
+                    .trimmed(set: CharacterSet.whitespacesAndNewlines)
+            }
+        
+        let triggeredIndices = words
+            .map({ word in
+                rulesForChat.keys.index(where: { word.contains($0.lowercased()) })
+            })
+            .flatMap { $0 }
         
         guard
-            let triggeredIndex = rulesForChat.index(where: {processed.contains($0.0.lowercased())})
+            !triggeredIndices.isEmpty
         else { return }
+
+        let triggeredRules = triggeredIndices.map({ rulesForChat[$0] })
         
-        let triggeredRule = rulesForChat[triggeredIndex]
-        
-        let reply = text
-                .replacingOccurrences(of: triggeredRule.key, with: "`\(triggeredRule.value)`")
-                .appending("\\*")
-        
+        var reply = text
+        triggeredRules.forEach({ reply = reply.replacingOccurrences(of: $0.key, with: "`\($0.value)`\\*") })
+
+//        let reply = text
+//                .replacingOccurrences(of: triggeredRule.key, with: "`\(triggeredRule.value)`")
+//                .appending("\\*")
+
         bot.sendMessageAsync(chat: chatId, text: reply, replyTo: update.message?.message_id, markdown: true)
     }
 }
