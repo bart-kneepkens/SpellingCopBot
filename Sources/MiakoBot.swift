@@ -46,7 +46,8 @@ extension MiakoBot {
     fileprivate func onUpdate(_ update: Update) {
         guard
             let chatId = update.message?.chat.id,
-            let text = update.message?.text
+            let text = update.message?.text,
+            let messageId = update.message?.message_id
         else { return }
         
         RuleBook.shared.loadRulesIfNeeded(for: chatId)
@@ -61,34 +62,21 @@ extension MiakoBot {
             !rulesForChat.isEmpty
         else { return }
         
-        let words = text
-            .components(separatedBy: " ")
-            .map { component -> String in
-                return component
-                    .lowercased()
-                    .trimmed(set: CharacterSet.illegalCharacters)
-                    .trimmed(set: CharacterSet.whitespacesAndNewlines)
-            }
-        
-        let triggeredIndices = words
-            .map({ word in
-                rulesForChat.keys.index(where: { word.contains($0.lowercased()) })
+        DispatchQueue.main.async {
+            text.match(with: rulesForChat, onCompletion: { matchedRules in
+                let response = self.responseMessage(from: text, replacing: matchedRules)
+                self.bot.sendMessageAsync(chatId, response, parse_mode: "Markdown", disable_notification: true, reply_to_message_id: messageId)
             })
-            .flatMap { $0 }
-        
-        guard
-            !triggeredIndices.isEmpty
-        else { return }
-
-        let triggeredRules = triggeredIndices.map({ rulesForChat[$0] })
-        
-        var reply = text
-        triggeredRules.forEach({ reply = reply.replacingOccurrences(of: $0.key, with: "`\($0.value)`\\*") })
-
-//        let reply = text
-//                .replacingOccurrences(of: triggeredRule.key, with: "`\(triggeredRule.value)`")
-//                .appending("\\*")
-
-        bot.sendMessageAsync(chat: chatId, text: reply, replyTo: update.message?.message_id, markdown: true)
+        }
+    }
+    
+    fileprivate func responseMessage(from text: String, replacing rules: [Trigger: Correction]) -> String {
+        var response = text
+        rules.forEach { rule in
+            guard let range = response.range(of: rule.key) ?? response.lowercased().range(of: rule.key.lowercased())
+            else { return }
+            response.replaceSubrange(range, with: "`\(rule.value)` \\*")
+        }
+        return response
     }
 }
