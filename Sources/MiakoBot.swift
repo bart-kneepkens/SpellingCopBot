@@ -70,12 +70,41 @@ extension MiakoBot {
         }
     }
     
-    fileprivate func responseMessage(from text: String, replacing rules: [Trigger: Correction]) -> String {
+    fileprivate func responseMessage(from text: String, replacing rules: [(Range<String.Index> , (Trigger, Correction))]) -> String {
         var response = text
-        rules.forEach { rule in
-            guard let range = response.range(of: rule.key) ?? response.lowercased().range(of: rule.key.lowercased())
-            else { return }
-            response.replaceSubrange(range, with: "`\(rule.value)` \\*")
+//        rules.forEach { rule in
+//            guard let range = response.range(of: rule.key) ?? response.lowercased().range(of: rule.key.lowercased())
+//            else { return }
+//            response.replaceSubrange(range, with: "`\(rule.value)` \\*")
+//        }
+        var excludedRanges: [Range<String.Index>] = []
+        
+        rules.forEach { tuple in
+            var interm = response
+            
+            excludedRanges.forEach({ range in
+                var replaceString = String()
+//                for _ in 0..<  {
+//                    replaceString = replaceString + " "
+//                }
+//                interm.replaceSubrange(range, with: replaceString)
+                
+                let count = response.substring(with: range).characters.count
+                
+                for _ in 1 ... count {
+                    replaceString = replaceString + " "
+                }
+                interm.replaceSubrange(range, with: replaceString)
+                
+            })
+            
+            if let range = interm.lowercased().range(of: tuple.1.0.lowercased()) {
+                response.replaceSubrange(range, with: "`\(tuple.1.1)` \\*")
+                excludedRanges.append(tuple.0)
+            }
+            
+            
+//            response.replaceSubrange(tuple.0, with: "`\(tuple.1.1)` \\*")
         }
         return response
     }
