@@ -86,7 +86,7 @@ extension MiakoBot {
             guard let range = intermediateString.lowercased().range(of: rule.trigger.lowercased()) ?? intermediateString.range(of: rule.trigger) else { return}
             let insertedCorrection = "`\(rule.correction)` \\*"
             response.replaceSubrange(range, with: insertedCorrection)
-            let whiteSpaceReplacement = String(repeatElement(" ", count: insertedCorrection.count))
+            let whiteSpaceReplacement = String(repeatElement(" ", count: insertedCorrection.characters.count))
             intermediateString.replaceSubrange(range, with: whiteSpaceReplacement)
         }
         return response

@@ -29,7 +29,7 @@ extension String{
             return words.contains(where: { text -> Bool in
                 text.lowercased().contains(rule.key.lowercased())
             })
-        }.sorted(by: { $0.0.key.count > $0.1.key.count })
+        }.sorted(by: { $0.0.key.characters.count > $0.1.key.characters.count })
         
         guard !triggeredRules.isEmpty else { return }
 
