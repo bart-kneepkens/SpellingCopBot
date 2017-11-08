@@ -62,6 +62,8 @@ extension MiakoBot {
             !rulesForChat.isEmpty
         else { return }
         
+        // Rule matching might take a significant amount of time if the input and/or rules collection are big.
+        // Therefore, dispatch it asynchronous, so the main thread is able to do something else in the meantime.
         DispatchQueue.main.async {
             text.match(with: rulesForChat, onCompletion: { matchedRules in
                 let response = self.responseMessage(from: text, replacing: matchedRules)
@@ -70,21 +72,22 @@ extension MiakoBot {
         }
     }
     
-    fileprivate func responseMessage(from text: String, replacing rules: [(Trigger, Correction)]) -> String {
-        var response = text
-        var workable = response
+    
+    /// Generates a response message from an original message and rules that were triggered in it.
+    ///
+    /// - Parameters:
+    ///   - text: The original message that was sent by a chat member
+    ///   - rules: The rules that were triggered by the original message
+    /// - Returns: A formatted message where the triggering parts of the message are replaced by the respective correction
+    fileprivate func responseMessage(from text: String, replacing rules: [(trigger: Trigger, correction: Correction)]) -> String {
+        var response = text, intermediateString = text
         
-        rules.forEach { tuple in
-            if let range = workable.lowercased().range(of: tuple.0.lowercased()) ?? workable.range(of: tuple.0) {
-                let valueInserted = "`\(tuple.1)` \\*"
-                response.replaceSubrange(range, with: valueInserted)
-                // remove it from workable
-                var replacement = String()
-                for _ in 0..<valueInserted.count {
-                    replacement = replacement + " "
-                }
-                workable.replaceSubrange(range, with: replacement)
-            }
+        rules.forEach { rule in
+            guard let range = intermediateString.lowercased().range(of: rule.trigger.lowercased()) ?? intermediateString.range(of: rule.trigger) else { return}
+            let insertedCorrection = "`\(rule.correction)` \\*"
+            response.replaceSubrange(range, with: insertedCorrection)
+            let whiteSpaceReplacement = String(repeatElement(" ", count: insertedCorrection.count))
+            intermediateString.replaceSubrange(range, with: whiteSpaceReplacement)
         }
         return response
     }
