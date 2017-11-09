@@ -27,7 +27,7 @@ extension String{
     
         let triggeredRules = rules.filter { rule -> Bool in
             return words.contains(where: { text -> Bool in
-                text.lowercased().contains(rule.key.lowercased())
+                text.lowercased().contains(rule.key.lowercased()) && text.lowercased() != rule.value.lowercased()
             })
         }.sorted(by: { $0.0.key.characters.count > $0.1.key.characters.count })
         
