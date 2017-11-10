@@ -52,10 +52,7 @@ extension MiakoBot {
         
         RuleBook.shared.loadRulesIfNeeded(for: chatId)
         
-        guard !text.hasPrefix("/") else {
-            do { try router.process(update: update) } catch { return }
-            return
-        }
+        do { try router.process(update: update) } catch { return }
         
         guard
             let rulesForChat = RuleBook.shared.rules(for: chatId),
