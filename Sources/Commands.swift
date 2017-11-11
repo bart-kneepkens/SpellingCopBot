@@ -12,4 +12,6 @@ enum CommandName: String {
     case removeRule = "removerule"
     case listRules = "list"
     case broadcastMessage = "broadcast"
+    
+    static let all: [CommandName] = [.addRule, .removeRule, .listRules, .broadcastMessage]
 }

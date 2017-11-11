@@ -52,7 +52,10 @@ extension MiakoBot {
         
         RuleBook.shared.loadRulesIfNeeded(for: chatId)
         
-        do { try router.process(update: update) } catch { return }
+        guard !update.containsCommand else {
+            do { try router.process(update: update) } catch { return }
+            return
+        }
         
         guard
             let rulesForChat = RuleBook.shared.rules(for: chatId),
