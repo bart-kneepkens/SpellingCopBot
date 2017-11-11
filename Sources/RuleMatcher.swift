@@ -20,14 +20,12 @@ extension String{
             .map { component -> String in
                 return component
                     .lowercased()
-                    .trimmed(set: CharacterSet.illegalCharacters)
-                    .trimmed(set: CharacterSet.whitespacesAndNewlines)
-                    .trimmed(set: CharacterSet.punctuationCharacters)
+                    .trimmed(set: CharacterSet.alphanumerics.inverted)
         }
     
         let triggeredRules = rules.filter { rule -> Bool in
             return words.contains(where: { text -> Bool in
-                text.lowercased().contains(rule.key.lowercased()) && text.lowercased() != rule.value.lowercased()
+                text.contains(rule.key.lowercased()) && text != rule.value.lowercased()
             })
         }.sorted(by: { $0.0.key.characters.count > $0.1.key.characters.count })
         
