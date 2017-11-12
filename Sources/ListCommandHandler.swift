@@ -26,9 +26,10 @@ func listCommandHandler(context: Context) -> Bool {
     }
     
     var message: String = " 📏 <b>Rules for this chat:</b> 📏 "
-    rulesForChat.forEach({ (trigger, correction) in
-        message.append("\n <b>\(trigger)</b> : \(correction)")
-    })
+    rulesForChat.sorted(by: {(lhs, rhs) in return lhs.key.lowercased() < rhs.key.lowercased() })
+        .forEach({ (trigger, correction) in
+            message.append("\n <b>\(trigger)</b> : \(correction)")
+        })
     
     context.bot.sendMessageAsync(chat_id: chat, text: message, parse_mode: "HTML", disable_notification: true, reply_to_message_id: context.message?.message_id)
     return true
