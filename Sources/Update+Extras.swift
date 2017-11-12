@@ -10,10 +10,15 @@ import TelegramBot
 
 extension Update {
     var containsCommand: Bool {
-        let messageComponents = self.message?.text?
+        guard let text = self.message?.text else { return false }
+        guard text.starts(with: "/") else { return false }
+        let messageComponents = text
             .trimmed(set: CharacterSet.alphanumerics.inverted)
             .components(separatedBy: .whitespaces)
-        guard let firstComponent = messageComponents?.first else { return false }
+        guard var firstComponent = messageComponents.first else { return false }
+        if let atSignIndex = firstComponent.index(of: "@") {
+            firstComponent = firstComponent.substring(to: atSignIndex)
+        }
         return CommandName.all.map({$0.rawValue}).contains(firstComponent)
     }
 }
