@@ -20,6 +20,12 @@ extension String {
     }
     
     var isUrl: Bool {
-        return true
+        do {
+            let expression = try Regex("((\\w)*|([0-9]*)|([-|_])*)+([\\.|/]((\\w)*|([0-9]*)|([-|_])*))+")
+            return self =~ expression
+        } catch {
+            print(error)
+        }
+        return false
     }
 }
