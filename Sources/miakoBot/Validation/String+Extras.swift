@@ -6,10 +6,17 @@
 //
 
 import Foundation
+import Rexy
 
 extension String {
     var isUsernameTag: Bool {
-        return true
+        do {
+            let expression = try Regex("@([A-Za-z0-9\\-\\_]+)")
+            return self =~ expression
+        } catch {
+            print(error)
+        }
+        return false
     }
     
     var isUrl: Bool {

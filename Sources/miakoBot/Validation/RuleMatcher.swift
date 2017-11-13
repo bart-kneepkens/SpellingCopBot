@@ -24,7 +24,7 @@ extension String{
                 return component
                     .lowercased()
                     .trimmed(set: disallowedCharacterSet)
-        }
+            }.filter( {!$0.isUsernameTag} )
     
         let triggeredRules = rules.filter { rule -> Bool in
             return words.contains(where: { text -> Bool in
