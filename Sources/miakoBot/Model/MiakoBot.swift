@@ -14,12 +14,12 @@ import Dispatch
 class MiakoBot {
     fileprivate let token: String
     fileprivate let bot: TelegramBot
-    fileprivate let router: Router
+    fileprivate let commandRouter: Router
     
     init() {
         token = readToken(from: "MIAKO_BOT_TOKEN")
         bot = TelegramBot(token: token)
-        router = Router(bot: bot, setup: { router in
+        commandRouter = Router(bot: bot, setup: { router in
             router[CommandName.addRule.rawValue, .slashRequired] = addRuleCommandHandler
             router[CommandName.removeRule.rawValue, .slashRequired] = removeRuleCommandHandler
             router[CommandName.listRules.rawValue, .slashRequired] = listCommandHandler
@@ -44,6 +44,8 @@ extension MiakoBot {
     ///
     /// - Parameter update: The object containing all the update information. (From `TelegramBot`)
     fileprivate func onUpdate(_ update: Update) {
+        upgradeToSuperGroupIfNeeded(update: update)
+
         guard
             let chatId = update.message?.chat.id,
             let text = update.message?.text,
@@ -53,7 +55,7 @@ extension MiakoBot {
         RuleBook.shared.loadRulesIfNeeded(for: chatId)
         
         guard !update.containsCommand else {
-            do { try router.process(update: update) } catch { return }
+            do { try commandRouter.process(update: update) } catch { return }
             return
         }
         

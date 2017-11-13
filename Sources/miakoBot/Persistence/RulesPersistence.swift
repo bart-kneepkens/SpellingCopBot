@@ -70,6 +70,15 @@ class RulesPersistence {
         }
         return decodedCorrections
     }
+    
+    func migrateChat(from chat: Chat, to newId: Chat) -> Bool {
+        guard access(path(for: chat), accessModeReadOK) == 0 else { return false }
+        if rename(path(for: chat), path(for: newId)) == 0 {
+            remove(path(for: chat))
+            return true
+        }
+        return false
+    }
 }
 
 // MARK: - Private helpers

@@ -74,6 +74,13 @@ class RuleBook {
     func rules(for chat: Chat) -> [Trigger: Correction]? {
         return allRules[chat]
     }
+    
+    func migrate(chat: Chat, to newId: Chat) {
+        if RulesPersistence.shared.migrateChat(from: chat, to: newId) {
+            self.allRules[newId] = self.allRules[chat]
+            self.allRules[chat] = nil
+        }
+    }
 }
 
 // MARK: - Private helpers
