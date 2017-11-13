@@ -67,7 +67,11 @@ extension MiakoBot {
         DispatchQueue.main.async {
             text.match(with: rulesForChat, onCompletion: { matchedRules in
                 let response = self.responseMessage(from: text, replacing: matchedRules)
-                self.bot.sendMessageAsync(chatId, response, parse_mode: "HTML", disable_notification: true, reply_to_message_id: messageId)
+                self.bot.sendMessageAsync(chatId,
+                                          response,
+                                          parse_mode: "HTML",
+                                          disable_notification: true,
+                                          reply_to_message_id: messageId)
             })
         }
     }
@@ -83,10 +87,13 @@ extension MiakoBot {
         var response = text, intermediateString = text
         
         rules.forEach { rule in
-            guard let range = intermediateString.lowercased().range(of: rule.trigger.lowercased()) ?? intermediateString.range(of: rule.trigger) else { return}
-            let insertedCorrection = "<code>\(rule.correction)</code>*"
+            guard let range = intermediateString.lowercased()
+                .range(of: rule.trigger.lowercased()) ?? intermediateString.range(of: rule.trigger) else { return }
+            
+            let insertedCorrection = (rule.correction.isUsernameTag || rule.correction.isUrl) ? rule.correction
+                : "<code>\(rule.correction)</code>*"
             response.replaceSubrange(range, with: insertedCorrection)
-            let whiteSpaceReplacement = String(repeatElement(" ", count: insertedCorrection.utf16   .count))
+            let whiteSpaceReplacement = String(repeatElement(" ", count: insertedCorrection.utf16.count))
             intermediateString.replaceSubrange(range, with: whiteSpaceReplacement)
         }
         return response
