@@ -8,6 +8,12 @@
       "version": "0.0.2"
     },
     {
+      "package": "Rexy",
+      "reason": null,
+      "repositoryURL": "https://github.com/vadymmarkov/Rexy.git",
+      "version": "0.7.0"
+    },
+    {
       "package": "ScannerUtils",
       "reason": null,
       "repositoryURL": "https://github.com/smud/ScannerUtils.git",

@@ -7,6 +7,7 @@
 
 import Foundation
 import TelegramBot
+import Rexy
 
 /// Handles a 'add rule' command.
 ///
