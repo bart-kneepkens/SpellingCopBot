@@ -1,4 +1,4 @@
-# SpellingCop
+# SpellingCop 👮🏻
 SpellingCop is a bot for Telegram that corrects your spelling of certain words. 
 Instead of running messages through a language's dictionary, this bot enforces a custom set of rules that can be set.
 
