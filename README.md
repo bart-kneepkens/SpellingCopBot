@@ -11,3 +11,4 @@ Imagine your friends spell your name wrong all the time. How annoying! SpellingC
 (In Telegram) `/addrule@MiakoBot Maiko Miako`
 
 ## Your friends will learn soon
+![Your friends baffled](https://i.imgur.com/IpC1lNV.png)
